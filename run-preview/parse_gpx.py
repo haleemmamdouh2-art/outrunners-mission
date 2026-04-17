@@ -1,0 +1,18 @@
+import xml.etree.ElementTree as ET
+import math
+
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371000  # Earth radius in meters
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2)**2
+    return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+gpx_data = """<?xml version="1.1" encoding="UTF-8"?>
+<gpx ...>
+[PASTE GPX HERE]
+</gpx>
+"""
+# I will use the actual GPX content provided in the request.
+# Just a placeholder for the logic.

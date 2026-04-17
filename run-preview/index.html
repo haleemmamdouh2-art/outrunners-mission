@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OUTRUNNERS CLUB | UNOFFICIAL RUNS</title>
+    <meta name="description" content="Official home of the Outrunners Club Unofficial Runs. View upcoming missions and join the roster.">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header style="text-align: center; margin-bottom: 20px; padding-top: 20px;">
+    <h1 style="font-size: 2.5rem; letter-spacing: 2px;">OUTRUNNERS <span style="color: var(--primary-orange);">CLUB</span></h1>
+    <p style="color: var(--text-muted); letter-spacing: 4px; font-size: 0.9rem;">UNOFFICIAL RUNS</p>
+</header>
+
+<div class="dashboard">
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+
+        <!-- Logo -->
+        <div class="card logo-section" style="text-align: center;">
+            <h1 style="line-height: 1;">OUTRUNNERS<br><span style="color:var(--primary-orange);letter-spacing:4px;font-size:1.2rem;">CLUB</span></h1>
+            <p style="font-size:0.7rem; color:#888; margin-top:10px; text-transform:uppercase; letter-spacing:2px;">UNOFFICIAL RUNS</p>
+        </div>
+
+        <!-- Register CTA / Auth Actions -->
+        <div class="card" id="auth-actions" style="padding:15px; display:flex; flex-direction:column; gap:10px;">
+            <button class="btn btn-primary" id="open-gallery-btn" style="width:100%; background:linear-gradient(135deg, #FF6B00 0%, #ff8c00 100%);">📸 Run Gallery</button>
+            <button class="btn btn-primary" id="register-btn" style="width:100%;">🏃 Register for Run</button>
+            <button class="btn" id="cancel-reg-btn" style="width:100%; display:none; background:rgba(255,68,68,0.1); color:#ff4444; border:1px solid rgba(255,68,68,0.2);">✕ Cancel Registration</button>
+            <button class="btn" id="login-toggle-btn" style="width:100%;background:rgba(255,255,255,0.05);color:white;border:1px solid rgba(255,255,255,0.1);">Sign In</button>
+            <button class="btn" id="logout-btn" style="width:100%;background:rgba(255,0,0,0.1);color:#ff4444;border:1px solid rgba(255,68,68,0.2);display:none;">Log Out</button>
+            <button class="btn btn-primary" id="admin-panel-btn" style="width:100%;display:none;">⚙️ Admin Panel</button>
+        </div>
+
+        <!-- Next Run Label -->
+        <div id="next-run-label" style="display:none; padding: 10px 15px; background: rgba(255,107,0,0.08); border: 1px solid rgba(255,107,0,0.2); border-radius: 10px;">
+            <div style="font-size: 0.65rem; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px;">NEXT RUN</div>
+            <div id="next-run-name" style="font-weight: 800; font-size: 0.9rem; color: var(--primary-orange); text-transform: uppercase; letter-spacing: 1px;">—</div>
+        </div>
+
+        <!-- Stats -->
+        <div id="mission-stats-container" style="display:none; grid-template-columns:1fr 1fr; gap:15px;">
+            <div class="card" style="padding:15px;">
+                <span class="stat-label">Distance</span>
+                <div class="stat-value" style="font-size:1.5rem;"><span id="dist">—</span><span class="unit">K</span></div>
+            </div>
+            <div class="card" style="padding:15px;">
+                <span class="stat-label">Elevation</span>
+                <div class="stat-value" style="font-size:1.5rem;"><span id="elev">—</span><span class="unit">M</span></div>
+            </div>
+        </div>
+
+        <!-- Roster -->
+        <div class="card roster-section">
+            <div class="roster-header">
+                <span class="stat-label">Who's Coming</span>
+                <span class="participant-pace" id="roster-count" style="font-size:1rem;">0</span>
+            </div>
+            <div class="participant-list" id="participant-list">
+                <p style="font-size:0.8rem;color:#888;text-align:center;padding:10px;">Loading roster…</p>
+            </div>
+        </div>
+
+        <!-- Quote -->
+        <div class="card" style="margin-top:auto;">
+            <p style="font-size:0.85rem;line-height:1.5;font-style:italic;">"Success isn't always about greatness. It's about consistency."</p>
+            <p style="color:var(--primary-orange);font-size:0.75rem;margin-top:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;">The Streets Are Waiting.</p>
+        </div>
+
+    </aside>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main id="map-container">
+        <!-- ACTIVE MISSION VIEW -->
+        <div id="active-mission-view">
+            <!-- Countdown -->
+            <div class="card countdown-container" id="countdown-container" style="text-align: center; padding: 20px; margin-bottom:20px;">
+                <h2 id="mission-title-display" style="color: var(--primary-orange); font-size: 1.1rem; font-weight: 800; letter-spacing: 2px; margin-bottom: 5px;">UPCOMING MISSION</h2>
+                <p style="color: #888; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;">STARTING IN</p>
+                <div id="timer" style="display: flex; justify-content: center; gap: 20px;">
+                    <div class="timer-segment">
+                        <div id="d" style="font-size: 2.5rem; font-weight: 800; color: var(--primary-orange);">00</div>
+                        <div style="font-size: 0.6rem; color: #888; text-transform: uppercase;">Days</div>
+                    </div>
+                    <div class="timer-segment">
+                        <div id="h" style="font-size: 2.5rem; font-weight: 800; color: var(--primary-orange);">00</div>
+                        <div style="font-size: 0.6rem; color: #888; text-transform: uppercase;">Hours</div>
+                    </div>
+                    <div class="timer-segment">
+                        <div id="m" style="font-size: 2.5rem; font-weight: 800; color: var(--primary-orange);">00</div>
+                        <div style="font-size: 0.6rem; color: #888; text-transform: uppercase;">Mins</div>
+                    </div>
+                    <div class="timer-segment">
+                        <div id="s" style="font-size: 2.5rem; font-weight: 800; color: var(--primary-orange);">00</div>
+                        <div style="font-size: 0.6rem; color: #888; text-transform: uppercase;">Secs</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Widget -->
+            <div class="card map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- IDLE MISSION VIEW -->
+        <div id="idle-mission-view" style="display:none; text-align:center; padding: 50px 20px; background: rgba(0,0,0,0.6); border-radius:15px; border:1px solid rgba(255,255,255,0.05); margin-bottom:20px;">
+            <h2 style="color: var(--primary-orange); margin-bottom: 15px; font-size:1.8rem;">THE DUST HAS SETTLED</h2>
+            <p style="color: #888; font-size:1rem; max-width:400px; margin:0 auto; line-height:1.5;">There are no active missions right now. Train hard, recover well, and stay tuned for the next drop.</p>
+        </div>
+        
+        <!-- UPCOMING RUNS SECTION -->
+        <div id="upcoming-runs-section" style="margin-top:30px; display:none;">
+            <h3 style="font-size:1.2rem; color:white; margin-bottom:5px; text-transform:uppercase; letter-spacing:2px; font-weight:800;">UPCOMING RUNS</h3>
+            <p style="color:#888; font-size:0.8rem; margin-bottom:20px;">Click any run to view the route and register your spot.</p>
+            <div id="upcoming-runs-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap:20px;">
+                <!-- Upcoming missions render here -->
+            </div>
+        </div>
+
+        <!-- RECENT ACTIVITIES SECTION -->
+        <div id="recent-activities-section" style="margin-top: 40px; display:none;">
+            <h3 style="font-size:1.2rem; color:var(--text-muted); margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">RECENT ACTIVITIES</h3>
+            <div id="recent-activities-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap:20px;">
+                <!-- Past missions load here -->
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ── REGISTRATION / LOGIN MODAL ── -->
+<div class="modal" id="registration-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h1 id="modal-title" style="font-size:1.6rem;margin-bottom:4px;">MISSION SIGNUP</h1>
+            <p id="modal-subtitle" style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;">Secure Your Spot on the Roster</p>
+        </div>
+        <form id="registration-form">
+            <div class="form-group" id="name-group">
+                <label>Full Name</label>
+                <input type="text" id="reg-name" placeholder="Your name">
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="reg-email" required placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="reg-password" required placeholder="Minimum 6 characters">
+            </div>
+            <div class="form-group" id="pace-group">
+                <label>Running Pace</label>
+                <select id="reg-pace">
+                    <option value="Advanced (4:30/km)">⚡ Advanced — 4:30/km</option>
+                    <option value="Styler (6:00/km)">🎯 Styler — 6:00/km</option>
+                    <option value="Beginner (8:00/km)" selected>🌱 Beginner — 8:00/km</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" id="submit-btn" style="width:100%;">Complete Registration</button>
+        </form>
+        <p id="reg-status" style="margin-top:15px;font-size:0.85rem;text-align:center;display:none;"></p>
+        <p style="text-align:center;margin-top:15px;font-size:0.8rem;"><a href="#" id="toggle-auth-mode" style="color:var(--text-muted);text-decoration:none;">Already have an account? Sign in</a></p>
+    </div>
+</div>
+
+<!-- ── ADMIN PANEL MODAL ── -->
+<div class="modal" id="admin-modal">
+    <div class="modal-content" style="max-width: 600px; width:95%;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+            <h1 style="color:#ff4444; margin:0;">Admin Panel</h1>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary" id="admin-tab-runners" style="padding:5px 10px; font-size:0.8rem;">Roster</button>
+                <button class="btn" id="admin-tab-missions" style="padding:5px 10px; font-size:0.8rem; background:rgba(255,255,255,0.1); color:white;">Missions</button>
+            </div>
+        </div>
+        
+        <!-- Tab: Runners -->
+        <div id="admin-view-runners">
+            <h3 style="font-size:1rem;color:var(--text-muted);">Current Mission Roster</h3>
+            <p style="font-size:0.8rem;color:#888;">Total Registered: <span id="admin-count" style="color:white;font-weight:bold;">0</span></p>
+            <div class="participant-list" id="admin-list" style="margin-top:10px; max-height:400px; overflow-y:auto; padding-right:10px;">
+                <p style="text-align:center;color:#888;">Loading...</p>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn" id="export-excel-btn" style="flex:1; background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.2);">📊 Export Excel</button>
+            </div>
+        </div>
+
+        <!-- Tab: Missions -->
+        <div id="admin-view-missions" style="display:none;">
+            <h3 style="font-size:1rem;color:var(--text-muted); margin-bottom:10px;">Create / Edit Mission</h3>
+            <form id="create-mission-form" style="background:rgba(255,255,255,0.02); padding:15px; border-radius:10px;">
+                <input type="hidden" id="edit-mission-id">
+                <div class="form-group">
+                    <label>Mission Title (e.g. 21K HALF MARATHON)</label>
+                    <input type="text" id="new-mission-title" required placeholder="Enter event name">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Mission Date & Time</label>
+                        <input type="datetime-local" id="new-mission-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>GPX Map File (Optional if editing)</label>
+                        <input type="file" id="new-mission-gpx" accept=".gpx" style="width:100%; font-size:0.8rem;">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Distance (K)</label>
+                        <input type="text" id="new-mission-dist" placeholder="e.g. 18.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Elevation (M)</label>
+                        <input type="text" id="new-mission-elev" placeholder="e.g. 120">
+                    </div>
+                </div>
+                <p id="mission-create-status" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;"></p>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn btn-primary" id="submit-mission-btn" style="flex:2;">Save Mission</button>
+                    <button type="button" class="btn" id="cancel-edit-btn" style="flex:1; display:none; background:rgba(255,255,255,0.1); color:white;">Cancel</button>
+                </div>
+            </form>
+
+            <h3 style="font-size:1rem;color:var(--text-muted); margin-top:20px; border-top:1px solid rgba(255,255,255,0.05); padding-top:15px;">Manage Existing Missions</h3>
+            <div id="admin-mission-list" style="margin-top:10px; max-height:200px; overflow-y:auto; padding-right:5px;">
+                <p style="text-align:center; color:#888; font-size:0.8rem;">Loading missions...</p>
+            </div>
+        </div>
+
+        <button class="btn" id="close-admin-btn" style="width:100%;margin-top:15px;background:transparent;border:1px solid rgba(255,255,255,0.2);color:white;">Close Panel</button>
+    </div>
+</div>
+
+<!-- ── GALLERY MODAL ── -->
+<div class="modal" id="gallery-modal">
+    <div class="modal-content" style="max-width: 800px; width:95%;">
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <div style="text-align:left;">
+                <h1 style="font-size:1.6rem;margin-bottom:4px;">OUTRUNNERS GALLERY</h1>
+                <p style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;">Mission Memories</p>
+            </div>
+            <button class="btn" id="close-gallery-btn" style="background:transparent; color:#888; padding:5px 10px;">✖</button>
+        </div>
+        
+        <!-- Upload Controls (Hidden if not signed in) -->
+        <div id="gallery-upload-section" style="display:none; background:rgba(255,255,255,0.03); padding:30px; border-radius:10px; margin-bottom:20px; border:2px dashed rgba(255,107,0,0.3); text-align:center; transition: all 0.3s ease;">
+            <label for="media-upload" class="btn btn-primary" id="upload-label" style="cursor:pointer; display:inline-block; margin-bottom:10px;">📤 Choose Files</label>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:5px; pointer-events:none;">Or drag and drop up to 50 files here</p>
+            <input type="file" id="media-upload" accept="image/*,video/*" multiple style="display:none;">
+            <p id="upload-status" style="font-size:0.9rem; font-weight:bold; color:#FF6B00; margin-top:10px;"></p>
+        </div>
+        <div id="gallery-login-prompt" style="text-align:center; padding:10px; background:rgba(255,255,255,0.02); border-radius:10px; margin-bottom:20px;">
+            <p style="font-size:0.85rem; color:#888;">Sign in to upload your own photos and videos!</p>
+        </div>
+
+        <!-- Grid Container -->
+        <div class="gallery-grid" id="gallery-grid" style="min-height:300px; max-height:500px; overflow-y:auto; padding-right:5px;">
+            <p style="text-align:center;color:#888; width:100%; grid-column:1/-1; padding-top:40px;">Loading gallery...</p>
+        </div>
+    </div>
+</div>
+
+<!-- ── LIGHTBOX MODAL ── -->
+<div class="modal" id="lightbox-modal" style="z-index: 9999; background:rgba(0,0,0,0.9);">
+    <div class="modal-content" style="max-width: 90vw; max-height: 90vh; background: transparent; box-shadow: none; border:none; padding: 0; display:flex; flex-direction:column; align-items:center; position:relative;">
+        <button class="btn" id="close-lightbox-btn" style="position:absolute; top:-40px; right:0; z-index:10; background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:50%; width:40px; height:40px; font-size:1.2rem; display:flex; align-items:center; justify-content:center; cursor:pointer;">✖</button>
+        <img id="lightbox-img" style="max-width:100%; max-height:80vh; border-radius:10px; display:none; object-fit:contain; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+        <video id="lightbox-video" controls style="max-width:100%; max-height:80vh; border-radius:10px; display:none; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></video>
+        <div style="margin-top:20px; width:100%; text-align:center;">
+            <button class="btn btn-primary" id="download-lightbox-btn" style="background:linear-gradient(135deg, #FF6B00 0%, #ff8c00 100%); font-weight:bold; padding:10px 25px; border-radius:25px;">⬇️ Download Media</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── MISSION DETAIL MODAL ── -->
+<div class="modal" id="mission-detail-modal">
+    <div class="modal-content" style="max-width:960px; width:97%; padding:0; overflow:hidden; border-radius:20px;">
+        <div style="padding:20px 25px 15px; background:rgba(0,0,0,0.4); border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+                <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:3px; margin-bottom:4px;">UPCOMING MISSION</div>
+                <h1 id="modal-mission-title" style="font-size:1.7rem; font-weight:800; color:var(--primary-orange);">—</h1>
+                <p id="modal-mission-date" style="color:#888; font-size:0.82rem; margin-top:2px;"></p>
+            </div>
+            <button id="close-mission-modal-btn" style="background:rgba(255,255,255,0.07); color:#aaa; border:1px solid rgba(255,255,255,0.1); width:36px; height:36px; border-radius:50%; font-size:1.1rem; padding:0; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; margin-left:10px;">✖</button>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr;">
+            <div style="position:relative;">
+                <div id="mission-full-map" style="height:460px; background:rgba(255,255,255,0.03);"></div>
+                <div style="display:flex; gap:25px; padding:12px 20px; background:rgba(0,0,0,0.5); border-top:1px solid rgba(255,255,255,0.05);">
+                    <span style="color:white; font-weight:700; font-size:0.9rem;">📏 <span id="modal-dist">—</span> K</span>
+                    <span style="color:white; font-weight:700; font-size:0.9rem;">🏔️ <span id="modal-elev">—</span> M</span>
+                </div>
+            </div>
+            <div style="padding:22px; background:rgba(0,0,0,0.25); border-left:1px solid rgba(255,255,255,0.05); overflow-y:auto; max-height:520px;">
+                <div id="mreg-form-section">
+                    <h2 style="font-size:1rem; font-weight:800; text-transform:uppercase; letter-spacing:2px; margin-bottom:4px; color:white;">Join This Run</h2>
+                    <p style="color:#888; font-size:0.78rem; margin-bottom:16px;">Secure your spot on the roster.</p>
+                    <form id="mission-reg-form" style="display:flex; flex-direction:column; gap:10px;">
+                        <div class="form-group" style="margin-bottom:0;"><label>Full Name</label><input type="text" id="mreg-name" required placeholder="Your name"></div>
+                        <div class="form-group" style="margin-bottom:0;"><label>Email</label><input type="email" id="mreg-email" required placeholder="your@email.com"></div>
+                        <div class="form-group" style="margin-bottom:0;"><label>Password</label><input type="password" id="mreg-password" required placeholder="Choose a password" minlength="6"></div>
+                        <div class="form-group" style="margin-bottom:0;"><label>Phone / WhatsApp</label><input type="tel" id="mreg-phone" placeholder="+20 XXX XXX XXXX"></div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Running Level</label>
+                            <select id="mreg-level">
+                                <option value="Beginner 🟢">🟢 Beginner</option>
+                                <option value="Intermediate 🟡" selected>🟡 Intermediate</option>
+                                <option value="Advanced 🔴">🔴 Advanced</option>
+                                <option value="Elite ⚡">⚡ Elite</option>
+                            </select>
+                        </div>
+                        <p id="mreg-status" style="font-size:0.82rem; margin:2px 0; min-height:16px;"></p>
+                        <button type="submit" class="btn btn-primary" id="mreg-submit" style="width:100%; font-weight:800;">🏃 Secure My Spot</button>
+                        <p style="font-size:0.72rem; color:#555; text-align:center; margin-top:5px;">Already have an account? <a href="#" id="mreg-switch-login" style="color:var(--primary-orange);">Sign in</a></p>
+                    </form>
+                </div>
+                <div id="mreg-login-section" style="display:none;">
+                    <h2 style="font-size:1rem; font-weight:800; text-transform:uppercase; letter-spacing:2px; margin-bottom:16px; color:white;">Sign In</h2>
+                    <div class="form-group"><label>Email</label><input type="email" id="mreg-login-email" placeholder="your@email.com"></div>
+                    <div class="form-group"><label>Password</label><input type="password" id="mreg-login-password" placeholder="Your password"></div>
+                    <p id="mreg-login-status" style="font-size:0.82rem; margin:4px 0;"></p>
+                    <button class="btn btn-primary" id="mreg-login-submit" style="width:100%; margin-top:8px; font-weight:800;">Sign In</button>
+                    <p style="font-size:0.72rem; color:#555; text-align:center; margin-top:10px;"><a href="#" id="mreg-back-register" style="color:var(--primary-orange);">← Register instead</a></p>
+                </div>
+                <div id="mreg-already-section" style="display:none; text-align:center; padding:30px 10px;">
+                    <div style="font-size:3.5rem;">✅</div>
+                    <div style="color:var(--primary-orange); font-weight:800; font-size:1.2rem; margin-top:12px; text-transform:uppercase;">You're In!</div>
+                    <div style="color:#888; font-size:0.85rem; margin-top:8px; line-height:1.6;">You're on the roster. See you on race day! 🔥</div>
+                    <button class="btn" id="mreg-cancel-btn" style="margin-top:22px; background:rgba(255,68,68,0.1); color:#ff4444; border:1px solid rgba(255,68,68,0.2); width:100%;">✕ Cancel My Registration</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const GPX_RAW = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx creator="StravaGPX" version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+<trk><trkseg>
+<trkpt lat="30.06585" lon="31.504240000000003"><ele>237.24</ele></trkpt>
+<trkpt lat="30.065790000000003" lon="31.504340000000003"><ele>237.36</ele></trkpt>
+<trkpt lat="30.065730000000002" lon="31.50457"><ele>237.55</ele></trkpt>
+<trkpt lat="30.065530000000003" lon="31.504700000000003"><ele>237.8</ele></trkpt>
+<trkpt lat="30.06518" lon="31.504830000000002"><ele>238.55</ele></trkpt>
+<trkpt lat="30.065" lon="31.504870000000004"><ele>238.55</ele></trkpt>
+<trkpt lat="30.064690000000002" lon="31.504900000000003"><ele>238.92</ele></trkpt>
+<trkpt lat="30.06444" lon="31.504910000000002"><ele>239.35</ele></trkpt>
+<trkpt lat="30.064400000000003" lon="31.504880000000004"><ele>239.35</ele></trkpt>
+<trkpt lat="30.064320000000002" lon="31.504870000000004"><ele>239.53</ele></trkpt>
+<trkpt lat="30.06425" lon="31.504920000000002"><ele>239.53</ele></trkpt>
+<trkpt lat="30.064230000000002" lon="31.504960000000004"><ele>240.29</ele></trkpt>
+<trkpt lat="30.06424" lon="31.505090000000003"><ele>240.33</ele></trkpt>
+<trkpt lat="30.064300000000003" lon="31.50514"><ele>240.33</ele></trkpt>
+<trkpt lat="30.064380000000003" lon="31.505150000000004"><ele>240.28</ele></trkpt>
+<trkpt lat="30.064460000000004" lon="31.505080000000003"><ele>240.09</ele></trkpt>
+<trkpt lat="30.06462" lon="31.505050000000004"><ele>239.41</ele></trkpt>
+<trkpt lat="30.064930000000004" lon="31.50503"><ele>239.23</ele></trkpt>
+<trkpt lat="30.065230000000003" lon="31.504970000000004"><ele>238.42</ele></trkpt>
+<trkpt lat="30.06556" lon="31.504830000000002"><ele>238.05</ele></trkpt>
+<trkpt lat="30.065770000000004" lon="31.504710000000003"><ele>237.7</ele></trkpt>
+<trkpt lat="30.066010000000002" lon="31.504540000000002"><ele>237.55</ele></trkpt>
+<trkpt lat="30.066170000000003" lon="31.50438"><ele>237.21</ele></trkpt>
+<trkpt lat="30.066390000000002" lon="31.504130000000004"><ele>236.61</ele></trkpt>
+<trkpt lat="30.066570000000002" lon="31.503860000000003"><ele>236.21</ele></trkpt>
+<trkpt lat="30.066810000000004" lon="31.503370000000004"><ele>235.26</ele></trkpt>
+<trkpt lat="30.067010000000003" lon="31.50306"><ele>235.01</ele></trkpt>
+<trkpt lat="30.067476668490734" lon="31.502573337889817"><ele>233.04</ele></trkpt>
+<trkpt lat="30.0679433351891" lon="31.50208667119015"><ele>231.55</ele></trkpt>
+<trkpt lat="30.068410000000004" lon="31.501600000000003"><ele>230.31</ele></trkpt>
+<trkpt lat="30.068530000000003" lon="31.501520000000003"><ele>230.09</ele></trkpt>
+<trkpt lat="30.06867" lon="31.501500000000004"><ele>229.76</ele></trkpt>
+<trkpt lat="30.06885" lon="31.50157"><ele>229.66</ele></trkpt>
+<trkpt lat="30.068980000000003" lon="31.501580000000004"><ele>229.66</ele></trkpt>
+<trkpt lat="30.069090000000003" lon="31.501530000000002"><ele>229.24</ele></trkpt>
+<trkpt lat="30.06922" lon="31.50138"><ele>229.24</ele></trkpt>
+<trkpt lat="30.06923" lon="31.501300000000004"><ele>229.09</ele></trkpt>
+<trkpt lat="30.069250000000004" lon="31.501170000000002"><ele>228.98</ele></trkpt>
+<trkpt lat="30.06921" lon="31.50043"><ele>228.88</ele></trkpt>
+<trkpt lat="30.06933" lon="31.500470000000004"><ele>228.11</ele></trkpt>
+<trkpt lat="30.069670000000002" lon="31.500680000000003"><ele>227.1</ele></trkpt>
+<trkpt lat="30.06988" lon="31.500760000000003"><ele>226.6</ele></trkpt>
+<trkpt lat="30.070290000000004" lon="31.500850000000003"><ele>225.67</ele></trkpt>
+<trkpt lat="30.070380000000004" lon="31.500870000000003"><ele>225.48</ele></trkpt>
+<trkpt lat="30.07137500382332" lon="31.500944995371402"><ele>223.09</ele></trkpt>
+<trkpt lat="30.072200000505635" lon="31.5011299938275"><ele>221.74</ele></trkpt>
+<trkpt lat="30.073025000369928" lon="31.50131499536846"><ele>220.98</ele></trkpt>
+<trkpt lat="30.073850000000004" lon="31.501500000000004"><ele>220.38</ele></trkpt>
+<trkpt lat="30.0743" lon="31.501500000000004"><ele>219.77</ele></trkpt>
+<trkpt lat="30.074450000000002" lon="31.50146"><ele>219.52</ele></trkpt>
+<trkpt lat="30.074650000000002" lon="31.50137"><ele>219.24</ele></trkpt>
+<trkpt lat="30.074840000000002" lon="31.501240000000003"><ele>218.97</ele></trkpt>
+<trkpt lat="30.075000000000003" lon="31.50108"><ele>218.97</ele></trkpt>
+<trkpt lat="30.07514" lon="31.500890000000002"><ele>218.41</ele></trkpt>
+<trkpt lat="30.075250000000004" lon="31.500680000000003"><ele>218.13</ele></trkpt>
+<trkpt lat="30.07532" lon="31.500480000000003"><ele>217.85</ele></trkpt>
+<trkpt lat="30.075525736157957" lon="31.499498583668533"><ele>216.7</ele></trkpt>
+<trkpt lat="30.075731465025605" lon="31.498517163255503"><ele>216.08</ele></trkpt>
+<trkpt lat="30.075937186602875" lon="31.497535738761037"><ele>215.56</ele></trkpt>
+<trkpt lat="30.076142900889643" lon="31.496554310185196"><ele>215.0</ele></trkpt>
+<trkpt lat="30.07634860788585" lon="31.495572877528094"><ele>214.41</ele></trkpt>
+<trkpt lat="30.076554307591397" lon="31.494591440789822"><ele>213.87</ele></trkpt>
+<trkpt lat="30.076760000000004" lon="31.493610000000004"><ele>212.86</ele></trkpt>
+<trkpt lat="30.076880000000003" lon="31.492890000000003"><ele>213.15</ele></trkpt>
+<trkpt lat="30.076770000000003" lon="31.492720000000002"><ele>213.25</ele></trkpt>
+<trkpt lat="30.07627999987574" lon="31.492664999712368"><ele>214.17</ele></trkpt>
+<trkpt lat="30.07579" lon="31.492610000000003"><ele>215.19</ele></trkpt>
+<trkpt lat="30.075810000000004" lon="31.491130000000002"><ele>216.17</ele></trkpt>
+<trkpt lat="30.075810000000004" lon="31.490940000000002"><ele>215.36</ele></trkpt>
+<trkpt lat="30.076690000000003" lon="31.490830000000003"><ele>214.12</ele></trkpt>
+<trkpt lat="30.076850000000004" lon="31.490720000000003"><ele>214.01</ele></trkpt>
+<trkpt lat="30.07676004965934" lon="31.489789998197384"><ele>213.73</ele></trkpt>
+<trkpt lat="30.0766500496573" lon="31.488979998195948"><ele>214.41</ele></trkpt>
+<trkpt lat="30.07654" lon="31.488170000000004"><ele>215.26</ele></trkpt>
+<trkpt lat="30.07646000118303" lon="31.487589999207255"><ele>216.36</ele></trkpt>
+<trkpt lat="30.076380000000004" lon="31.48702"><ele>217.69</ele></trkpt>
+<trkpt lat="30.07629000161818" lon="31.486354999364213"><ele>219.08</ele></trkpt>
+<trkpt lat="30.076200000000004" lon="31.4857"><ele>221.47</ele></trkpt>
+<trkpt lat="30.076140000000002" lon="31.48522"><ele>222.84</ele></trkpt>
+<trkpt lat="30.07605500153078" lon="31.484579999304316"><ele>224.53</ele></trkpt>
+<trkpt lat="30.07597" lon="31.483940000000004"><ele>225.44</ele></trkpt>
+<trkpt lat="30.075810000000004" lon="31.48393"><ele>225.62</ele></trkpt>
+<trkpt lat="30.0758" lon="31.483590000000003"><ele>223.18</ele></trkpt>
+<trkpt lat="30.075540000000004" lon="31.483590000000003"><ele>218.79</ele></trkpt>
+<trkpt lat="30.075480000000002" lon="31.48344"><ele>218.44</ele></trkpt>
+<trkpt lat="30.07531" lon="31.483230000000002"><ele>217.08</ele></trkpt>
+<trkpt lat="30.075280000000003" lon="31.482840000000003"><ele>217.15</ele></trkpt>
+<trkpt lat="30.075110000000002" lon="31.482670000000002"><ele>219.7</ele></trkpt>
+<trkpt lat="30.075000000000003" lon="31.482560000000003"><ele>219.9</ele></trkpt>
+<trkpt lat="30.074910000000003" lon="31.482290000000003"><ele>223.71</ele></trkpt>
+<trkpt lat="30.075160000000004" lon="31.482170000000004"><ele>227.64</ele></trkpt>
+<trkpt lat="30.075300000000002" lon="31.48223"><ele>225.48</ele></trkpt>
+<trkpt lat="30.075170000000004" lon="31.48175"><ele>227.77</ele></trkpt>
+<trkpt lat="30.07504" lon="31.481590000000004"><ele>228.57</ele></trkpt>
+<trkpt lat="30.07542" lon="31.481340000000003"><ele>228.62</ele></trkpt>
+<trkpt lat="30.07515" lon="31.480690000000003"><ele>228.02</ele></trkpt>
+<trkpt lat="30.074830000000002" lon="31.48006"><ele>227.08</ele></trkpt>
+<trkpt lat="30.074440000000003" lon="31.479460000000003"><ele>225.31</ele></trkpt>
+<trkpt lat="30.074220000000004" lon="31.479170000000003"><ele>224.84</ele></trkpt>
+<trkpt lat="30.073970000000003" lon="31.47885"><ele>224.08</ele></trkpt>
+<trkpt lat="30.073410000000003" lon="31.478220000000004"><ele>223.38</ele></trkpt>
+<trkpt lat="30.072965000849603" lon="31.47771999773134"><ele>222.91</ele></trkpt>
+<trkpt lat="30.07252" lon="31.477230000000002"><ele>222.3</ele></trkpt>
+<trkpt lat="30.071970000000004" lon="31.476630000000004"><ele>222.3</ele></trkpt>
+<trkpt lat="30.07154500071482" lon="31.476164997972354"><ele>222.6</ele></trkpt>
+<trkpt lat="30.071120000000004" lon="31.475710000000003"><ele>223.17</ele></trkpt>
+<trkpt lat="30.070670000000003" lon="31.475250000000003"><ele>223.53</ele></trkpt>
+<trkpt lat="30.070460000000004" lon="31.47509"><ele>223.63</ele></trkpt>
+<trkpt lat="30.070220000000003" lon="31.474980000000002"><ele>224.37</ele></trkpt>
+<trkpt lat="30.06978" lon="31.474870000000003"><ele>225.0</ele></trkpt>
+<trkpt lat="30.069480000000002" lon="31.474880000000002"><ele>225.21</ele></trkpt>
+<trkpt lat="30.069180000000003" lon="31.474930000000004"><ele>225.6</ele></trkpt>
+<trkpt lat="30.068800000000003" lon="31.474990000000002"><ele>225.93</ele></trkpt>
+<trkpt lat="30.068115000097524" lon="31.475105000787998"><ele>226.01</ele></trkpt>
+<trkpt lat="30.06743" lon="31.475220000000004"><ele>225.75</ele></trkpt>
+<trkpt lat="30.066964999948777" lon="31.475260000192865"><ele>225.97</ele></trkpt>
+<trkpt lat="30.06558500227179" lon="31.47648499983489"><ele>228.26</ele></trkpt>
+<trkpt lat="30.065590000000004" lon="31.47726"><ele>229.58</ele></trkpt>
+<trkpt lat="30.06547" lon="31.477470000000004"><ele>229.84</ele></trkpt>
+<trkpt lat="30.065350000000002" lon="31.47753"><ele>230.13</ele></trkpt>
+<trkpt lat="30.064750000101007" lon="31.477514999911577"><ele>230.32</ele></trkpt>
+<trkpt lat="30.06415" lon="31.477500000000003"><ele>230.95</ele></trkpt>
+<trkpt lat="30.063840000000003" lon="31.477410000000003"><ele>231.58</ele></trkpt>
+<trkpt lat="30.06369" lon="31.477230000000002"><ele>231.62</ele></trkpt>
+<trkpt lat="30.06368" lon="31.477130000000002"><ele>232.46</ele></trkpt>
+<trkpt lat="30.063685001228638" lon="31.47656000010242"><ele>233.07</ele></trkpt>
+<trkpt lat="30.06369" lon="31.475990000000003"><ele>234.58</ele></trkpt>
+<trkpt lat="30.06349" lon="31.47585"><ele>238.87</ele></trkpt>
+<trkpt lat="30.063520000000004" lon="31.475450000000002"><ele>236.29</ele></trkpt>
+<trkpt lat="30.06342" lon="31.475330000000003"><ele>236.5</ele></trkpt>
+<trkpt lat="30.06274" lon="31.475330000000003"><ele>238.03</ele></trkpt>
+<trkpt lat="30.061980000000002" lon="31.475330000000003"><ele>238.75</ele></trkpt>
+<trkpt lat="30.06133" lon="31.475320000000004"><ele>238.92</ele></trkpt>
+<trkpt lat="30.061270000000004" lon="31.47538"><ele>238.87</ele></trkpt>
+<trkpt lat="30.060644999968318" lon="31.475314999965175"><ele>238.63</ele></trkpt>
+<trkpt lat="30.059960000000004" lon="31.475310000000004"><ele>238.38</ele></trkpt>
+<trkpt lat="30.059150000057866" lon="31.47530499995996"><ele>238.09</ele></trkpt>
+<trkpt lat="30.05835" lon="31.475300000000004"><ele>238.67</ele></trkpt>
+<trkpt lat="30.057900000000004" lon="31.47529"><ele>239.42</ele></trkpt>
+<trkpt lat="30.05786" lon="31.475360000000002"><ele>239.16</ele></trkpt>
+<trkpt lat="30.057800000000004" lon="31.475550000000002"><ele>239.09</ele></trkpt>
+<trkpt lat="30.057800002391037" lon="31.476345000012078"><ele>239.43</ele></trkpt>
+<trkpt lat="30.057800000000004" lon="31.477140000000002"><ele>239.0</ele></trkpt>
+<trkpt lat="30.057850000000002" lon="31.477270000000004"><ele>239.05</ele></trkpt>
+<trkpt lat="30.05788" lon="31.47735"><ele>239.5</ele></trkpt>
+<trkpt lat="30.057610000000004" lon="31.477600000000002"><ele>239.93</ele></trkpt>
+<trkpt lat="30.057160000000003" lon="31.478120000000004"><ele>241.0</ele></trkpt>
+<trkpt lat="30.057070000000003" lon="31.47829"><ele>241.16</ele></trkpt>
+<trkpt lat="30.056980000000003" lon="31.478430000000003"><ele>241.26</ele></trkpt>
+<trkpt lat="30.05713" lon="31.47856"><ele>241.16</ele></trkpt>
+<trkpt lat="30.057465000531867" lon="31.478944998664144"><ele>240.63</ele></trkpt>
+<trkpt lat="30.057800000000004" lon="31.47933"><ele>240.17</ele></trkpt>
+<trkpt lat="30.057910000000003" lon="31.479560000000003"><ele>240.16</ele></trkpt>
+<trkpt lat="30.05795" lon="31.480570000000004"><ele>243.03</ele></trkpt>
+<trkpt lat="30.057940000000002" lon="31.48158"><ele>245.59</ele></trkpt>
+<trkpt lat="30.057810000000003" lon="31.481710000000003"><ele>245.77</ele></trkpt>
+<trkpt lat="30.05759" lon="31.481820000000003"><ele>245.7</ele></trkpt>
+<trkpt lat="30.05677499990951" lon="31.481784999958293"><ele>246.01</ele></trkpt>
+<trkpt lat="30.055960000000002" lon="31.481780000000004"><ele>247.53</ele></trkpt>
+<trkpt lat="30.055960000000002" lon="31.48224"><ele>247.85</ele></trkpt>
+<trkpt lat="30.055330000000004" lon="31.48297"><ele>250.2</ele></trkpt>
+<trkpt lat="30.05515" lon="31.48297"><ele>248.91</ele></trkpt>
+<trkpt lat="30.05492000631207" lon="31.48388333757304"><ele>251.03</ele></trkpt>
+<trkpt lat="30.054690006312846" lon="31.484796670903215"><ele>252.99</ele></trkpt>
+<trkpt lat="30.054460000000002" lon="31.48571"><ele>251.05</ele></trkpt>
+<trkpt lat="30.053870000000003" lon="31.485810000000004"><ele>250.5</ele></trkpt>
+<trkpt lat="30.053725001482217" lon="31.486450001233898"><ele>251.75</ele></trkpt>
+<trkpt lat="30.053580000000004" lon="31.487090000000002"><ele>253.83</ele></trkpt>
+<trkpt lat="30.05356000241759" lon="31.487890000298275"><ele>253.99</ele></trkpt>
+<trkpt lat="30.05354" lon="31.488690000000002"><ele>256.03</ele></trkpt>
+<trkpt lat="30.053570000000004" lon="31.48964"><ele>254.3</ele></trkpt>
+<trkpt lat="30.053590000000003" lon="31.490350000000003"><ele>256.05</ele></trkpt>
+<trkpt lat="30.053900000000002" lon="31.490430000000003"><ele>257.07</ele></trkpt>
+<trkpt lat="30.053900000000002" lon="31.490740000000002"><ele>257.04</ele></trkpt>
+<trkpt lat="30.05464499993063" lon="31.490749999923835"><ele>255.02</ele></trkpt>
+<trkpt lat="30.055390000000003" lon="31.49076"><ele>251.43</ele></trkpt>
+<trkpt lat="30.05542" lon="31.49086"><ele>253.09</ele></trkpt>
+<trkpt lat="30.055415002450225" lon="31.49166500023836"><ele>253.55</ele></trkpt>
+<trkpt lat="30.055410000000002" lon="31.49247"><ele>254.08</ele></trkpt>
+<trkpt lat="30.05543" lon="31.492810000000002"><ele>254.17</ele></trkpt>
+<trkpt lat="30.055370000000003" lon="31.493150000000004"><ele>254.6</ele></trkpt>
+<trkpt lat="30.054625000111287" lon="31.493170000147522"><ele>256.62</ele></trkpt>
+<trkpt lat="30.053880000000003" lon="31.493190000000002"><ele>259.36</ele></trkpt>
+<trkpt lat="30.053770000000004" lon="31.49321"><ele>259.17</ele></trkpt>
+<trkpt lat="30.053630000000002" lon="31.493270000000003"><ele>259.23</ele></trkpt>
+<trkpt lat="30.053580000000004" lon="31.493360000000003"><ele>259.25</ele></trkpt>
+<trkpt lat="30.05356" lon="31.493600000000004"><ele>259.42</ele></trkpt>
+<trkpt lat="30.053553338885127" lon="31.49445666684141"><ele>260.4</ele></trkpt>
+<trkpt lat="30.053546672218" lon="31.495313333567513"><ele>260.85</ele></trkpt>
+<trkpt lat="30.05354" lon="31.496170000000003"><ele>261.23</ele></trkpt>
+<trkpt lat="30.053535003633215" lon="31.49715000001185"><ele>261.62</ele></trkpt>
+<trkpt lat="30.053530000000002" lon="31.498130000000003"><ele>261.57</ele></trkpt>
+<trkpt lat="30.053590000000003" lon="31.49846"><ele>261.33</ele></trkpt>
+<trkpt lat="30.053680000000004" lon="31.49866"><ele>261.0</ele></trkpt>
+<trkpt lat="30.05382" lon="31.49884"><ele>261.0</ele></trkpt>
+<trkpt lat="30.053900000000002" lon="31.498920000000002"><ele>260.25</ele></trkpt>
+<trkpt lat="30.053990000000002" lon="31.498980000000003"><ele>260.25</ele></trkpt>
+<trkpt lat="30.054790000000004" lon="31.499330000000004"><ele>259.15</ele></trkpt>
+<trkpt lat="30.054640000000003" lon="31.499760000000002"><ele>259.01</ele></trkpt>
+<trkpt lat="30.05459" lon="31.49987"><ele>259.08</ele></trkpt>
+<trkpt lat="30.054330000000004" lon="31.499750000000002"><ele>260.43</ele></trkpt>
+<trkpt lat="30.054130000000004" lon="31.49969"><ele>260.85</ele></trkpt>
+<trkpt lat="30.05393" lon="31.499720000000003"><ele>261.14</ele></trkpt>
+<trkpt lat="30.053860000000004" lon="31.499760000000002"><ele>261.4</ele></trkpt>
+<trkpt lat="30.05375" lon="31.499830000000003"><ele>261.62</ele></trkpt>
+<trkpt lat="30.053670000000004" lon="31.499910000000003"><ele>261.81</ele></trkpt>
+<trkpt lat="30.05354" lon="31.500230000000002"><ele>262.24</ele></trkpt>
+<trkpt lat="30.053530000000002" lon="31.500570000000003"><ele>262.39</ele></trkpt>
+<trkpt lat="30.05352000116498" lon="31.5011250000682"><ele>263.94</ele></trkpt>
+<trkpt lat="30.053510000000003" lon="31.501680000000004"><ele>264.49</ele></trkpt>
+<trkpt lat="30.05346" lon="31.502560000000003"><ele>265.4</ele></trkpt>
+<trkpt lat="30.053420000000003" lon="31.50305"><ele>266.31</ele></trkpt>
+<trkpt lat="30.05337" lon="31.503480000000003"><ele>266.89</ele></trkpt>
+<trkpt lat="30.053290000000004" lon="31.50399"><ele>267.78</ele></trkpt>
+<trkpt lat="30.053160000000002" lon="31.504770000000004"><ele>268.96</ele></trkpt>
+<trkpt lat="30.053020000000004" lon="31.505450000000003"><ele>270.46</ele></trkpt>
+<trkpt lat="30.052865001565998" lon="31.50608500082724"><ele>271.82</ele></trkpt>
+<trkpt lat="30.05271" lon="31.50672"><ele>272.7</ele></trkpt>
+<trkpt lat="30.052500000000002" lon="31.507490000000004"><ele>273.59</ele></trkpt>
+<trkpt lat="30.05232" lon="31.508270000000003"><ele>277.2</ele></trkpt>
+<trkpt lat="30.05204" lon="31.50917"><ele>277.68</ele></trkpt>
+<trkpt lat="30.05286500051371" lon="31.509544996867593"><ele>276.91</ele></trkpt>
+<trkpt lat="30.053690000000003" lon="31.50992"><ele>271.93</ele></trkpt>
+<trkpt lat="30.05383" lon="31.510070000000002"><ele>267.43</ele></trkpt>
+<trkpt lat="30.053870000000003" lon="31.51019"><ele>267.21</ele></trkpt>
+<trkpt lat="30.05384" lon="31.51057"><ele>267.3</ele></trkpt>
+<trkpt lat="30.05354" lon="31.511270000000003"><ele>268.05</ele></trkpt>
+<trkpt lat="30.053340000000002" lon="31.511720000000004"><ele>268.0</ele></trkpt>
+<trkpt lat="30.053030000000003" lon="31.512480000000004"><ele>270.92</ele></trkpt>
+<trkpt lat="30.053300000000004" lon="31.512710000000002"><ele>270.71</ele></trkpt>
+<trkpt lat="30.053680000000004" lon="31.513060000000003"><ele>264.12</ele></trkpt>
+<trkpt lat="30.054320000000004" lon="31.513410000000004"><ele>265.69</ele></trkpt>
+<trkpt lat="30.05495" lon="31.51375"><ele>264.47</ele></trkpt>
+<trkpt lat="30.055480000000003" lon="31.51403"><ele>263.45</ele></trkpt>
+<trkpt lat="30.055935000560147" lon="31.514279999029057"><ele>262.25</ele></trkpt>
+<trkpt lat="30.056390000000004" lon="31.514530000000004"><ele>261.49</ele></trkpt>
+<trkpt lat="30.056830000066796" lon="31.514764998879784"><ele>260.55</ele></trkpt>
+<trkpt lat="30.057270000000003" lon="31.515000000000004"><ele>259.76</ele></trkpt>
+<trkpt lat="30.057830000648973" lon="31.51529663301722"><ele>259.01</ele></trkpt>
+<trkpt lat="30.05839000063203" lon="31.51559332995937"><ele>258.65</ele></trkpt>
+<trkpt lat="30.058950000000003" lon="31.515890000000002"><ele>257.91</ele></trkpt>
+<trkpt lat="30.059583334256363" lon="31.51622666239395"><ele>257.5</ele></trkpt>
+<trkpt lat="30.06021666765512" lon="31.516563329095334"><ele>256.77</ele></trkpt>
+<trkpt lat="30.060850000000002" lon="31.516900000000003"><ele>255.75</ele></trkpt>
+<trkpt lat="30.061230000000002" lon="31.517100000000003"><ele>255.44</ele></trkpt>
+<trkpt lat="30.061560000000004" lon="31.51666"><ele>254.68</ele></trkpt>
+<trkpt lat="30.061640000000004" lon="31.516690000000004"><ele>254.85</ele></trkpt>
+<trkpt lat="30.0621" lon="31.516650000000002"><ele>259.32</ele></trkpt>
+<trkpt lat="30.062300000000004" lon="31.516910000000003"><ele>259.17</ele></trkpt>
+<trkpt lat="30.062340000000003" lon="31.517210000000002"><ele>257.55</ele></trkpt>
+<trkpt lat="30.06227" lon="31.51751"><ele>255.47</ele></trkpt>
+<trkpt lat="30.062250000000002" lon="31.517540000000004"><ele>252.98</ele></trkpt>
+<trkpt lat="30.062800000000003" lon="31.517740000000003"><ele>251.77</ele></trkpt>
+<trkpt lat="30.063150000000004" lon="31.517950000000003"><ele>250.73</ele></trkpt>
+<trkpt lat="30.063790000649416" lon="31.518233329688005"><ele>249.76</ele></trkpt>
+<trkpt lat="30.064430000691374" lon="31.51851666303987"><ele>248.31</ele></trkpt>
+<trkpt lat="30.065070000000002" lon="31.518800000000002"><ele>246.83</ele></trkpt>
+<trkpt lat="30.065713333761817" lon="31.519063329818046"><ele>245.47</ele></trkpt>
+<trkpt lat="30.066366666998885" lon="31.519326663112526"><ele>243.78</ele></trkpt>
+<trkpt lat="30.067020000000003" lon="31.51959"><ele>243.17</ele></trkpt>
+<trkpt lat="30.067570000226485" lon="31.519799998834106"><ele>242.08</ele></trkpt>
+<trkpt lat="30.068130000000004" lon="31.520010000000003"><ele>241.02</ele></trkpt>
+<trkpt lat="30.0683" lon="31.519920000000003"><ele>240.82</ele></trkpt>
+<trkpt lat="30.06838" lon="31.519720000000003"><ele>240.45</ele></trkpt>
+<trkpt lat="30.068510000000003" lon="31.519780000000004"><ele>239.82</ele></trkpt>
+<trkpt lat="30.068630000000002" lon="31.51976"><ele>239.48</ele></trkpt>
+<trkpt lat="30.06858" lon="31.519930000000002"><ele>239.76</ele></trkpt>
+<trkpt lat="30.06885334809862" lon="31.519046678857464"><ele>240.66</ele></trkpt>
+<trkpt lat="30.06912669029225" lon="31.51816335283534"><ele>238.9</ele></trkpt>
+<trkpt lat="30.06940002658079" lon="31.517280021933665"><ele>238.5</ele></trkpt>
+<trkpt lat="30.06967335696417" lon="31.51639668615246"><ele>237.63</ele></trkpt>
+<trkpt lat="30.069946681442264" lon="31.51551334549175"><ele>237.28</ele></trkpt>
+<trkpt lat="30.070220000000003" lon="31.514630000000004"><ele>237.01</ele></trkpt>
+<trkpt lat="30.070320000000002" lon="31.514360000000003"><ele>237.0</ele></trkpt>
+<trkpt lat="30.07036" lon="31.514310000000002"><ele>236.99</ele></trkpt>
+<trkpt lat="30.070490000000003" lon="31.51414"><ele>236.89</ele></trkpt>
+<trkpt lat="30.070590000000003" lon="31.514100000000003"><ele>236.86</ele></trkpt>
+<trkpt lat="30.070790000000002" lon="31.514070000000004"><ele>236.56</ele></trkpt>
+<trkpt lat="30.071040000000004" lon="31.514110000000002"><ele>234.1</ele></trkpt>
+<trkpt lat="30.07119" lon="31.514160000000004"><ele>230.86</ele></trkpt>
+<trkpt lat="30.071705000221" lon="31.514369998929126"><ele>230.05</ele></trkpt>
+<trkpt lat="30.07222" lon="31.514580000000002"><ele>230.06</ele></trkpt>
+<trkpt lat="30.072490000000002" lon="31.513620000000003"><ele>226.86</ele></trkpt>
+<trkpt lat="30.072830000000003" lon="31.51375"><ele>231.41</ele></trkpt>
+<trkpt lat="30.073015001731964" lon="31.513075001233755"><ele>231.34</ele></trkpt>
+<trkpt lat="30.073200000000003" lon="31.512400000000003"><ele>231.35</ele></trkpt>
+<trkpt lat="30.07333000112183" lon="31.511865000543793"><ele>230.98</ele></trkpt>
+<trkpt lat="30.07346" lon="31.51133"><ele>230.82</ele></trkpt>
+<trkpt lat="30.073620000000002" lon="31.510680000000004"><ele>230.39</ele></trkpt>
+<trkpt lat="30.073750001111655" lon="31.510140000675698"><ele>230.1</ele></trkpt>
+<trkpt lat="30.073880000000003" lon="31.509600000000002"><ele>229.59</ele></trkpt>
+<trkpt lat="30.074050000000003" lon="31.508750000000003"><ele>228.76</ele></trkpt>
+<trkpt lat="30.074220000000004" lon="31.50793"><ele>227.53</ele></trkpt>
+<trkpt lat="30.07438" lon="31.507040000000003"><ele>225.85</ele></trkpt>
+<trkpt lat="30.074500000000004" lon="31.506290000000003"><ele>224.57</ele></trkpt>
+<trkpt lat="30.074590001121816" lon="31.50575000038152"><ele>223.99</ele></trkpt>
+<trkpt lat="30.07468" lon="31.50521"><ele>222.77</ele></trkpt>
+<trkpt lat="30.074720000000003" lon="31.504910000000002"><ele>222.56</ele></trkpt>
+<trkpt lat="30.07467" lon="31.504770000000004"><ele>222.53</ele></trkpt>
+<trkpt lat="30.074610000000003" lon="31.504720000000002"><ele>222.56</ele></trkpt>
+<trkpt lat="30.074440000000003" lon="31.504690000000004"><ele>222.83</ele></trkpt>
+<trkpt lat="30.074370000000002" lon="31.504590000000004"><ele>222.69</ele></trkpt>
+<trkpt lat="30.07363" lon="31.50446"><ele>223.78</ele></trkpt>
+<trkpt lat="30.073300000000003" lon="31.504420000000003"><ele>224.11</ele></trkpt>
+<trkpt lat="30.073240000000002" lon="31.50447"><ele>224.24</ele></trkpt>
+<trkpt lat="30.073120000000003" lon="31.504430000000003"><ele>224.44</ele></trkpt>
+<trkpt lat="30.073090000000004" lon="31.50438"><ele>222.73</ele></trkpt>
+<trkpt lat="30.073090000000004" lon="31.504310000000004"><ele>224.11</ele></trkpt>
+<trkpt lat="30.07316" lon="31.504220000000004"><ele>224.11</ele></trkpt>
+<trkpt lat="30.073210000000003" lon="31.50409"><ele>224.11</ele></trkpt>
+<trkpt lat="30.073375003469963" lon="31.503135001485116"><ele>223.74</ele></trkpt>
+<trkpt lat="30.07354" lon="31.502180000000003"><ele>222.73</ele></trkpt>
+<trkpt lat="30.073500000000003" lon="31.50203"><ele>222.98</ele></trkpt>
+<trkpt lat="30.07327" lon="31.501980000000003"><ele>223.38</ele></trkpt>
+<trkpt lat="30.072480000000002" lon="31.501780000000004"><ele>221.75</ele></trkpt>
+<trkpt lat="30.071660000339065" lon="31.501589996866326"><ele>223.18</ele></trkpt>
+<trkpt lat="30.07084000040491" lon="31.501399996881624"><ele>224.69</ele></trkpt>
+<trkpt lat="30.070020000000003" lon="31.501210000000004"><ele>225.91</ele></trkpt>
+<trkpt lat="30.069840000000003" lon="31.501170000000002"><ele>225.91</ele></trkpt>
+<trkpt lat="30.069660000000002" lon="31.50118"><ele>227.38</ele></trkpt>
+<trkpt lat="30.069350000000004" lon="31.501420000000003"><ele>228.48</ele></trkpt>
+<trkpt lat="30.069290000000002" lon="31.501500000000004"><ele>228.67</ele></trkpt>
+<trkpt lat="30.069070000000004" lon="31.501630000000002"><ele>229.3</ele></trkpt>
+<trkpt lat="30.068700000000003" lon="31.501360000000002"><ele>228.97</ele></trkpt>
+<trkpt lat="30.068510000000003" lon="31.501210000000004"><ele>229.77</ele></trkpt>
+<trkpt lat="30.068540000000002" lon="31.501220000000004"><ele>229.96</ele></trkpt>
+<trkpt lat="30.068450000000002" lon="31.50138"><ele>229.97</ele></trkpt>
+<trkpt lat="30.06798000192612" lon="31.501876671321323"><ele>231.23</ele></trkpt>
+<trkpt lat="30.06751000198541" lon="31.502373337925277"><ele>232.46</ele></trkpt>
+<trkpt lat="30.067040000000002" lon="31.50287"><ele>234.22</ele></trkpt>
+<trkpt lat="30.06689" lon="31.503020000000003"><ele>234.44</ele></trkpt>
+<trkpt lat="30.066720000000004" lon="31.503300000000003"><ele>234.87</ele></trkpt>
+<trkpt lat="30.066380000000002" lon="31.503930000000004"><ele>236.31</ele></trkpt>
+<trkpt lat="30.066170000000003" lon="31.503970000000002"><ele>236.64</ele></trkpt>
+<trkpt lat="30.066010000000002" lon="31.504060000000003"><ele>236.94</ele></trkpt>
+<trkpt lat="30.065920000000002" lon="31.504140000000003"><ele>237.12</ele></trkpt>
+<trkpt lat="30.06585" lon="31.504240000000003"><ele>237.24</ele></trkpt>
+</trkseg></trk></gpx>`;
+</script>
+<script src="app.js"></script>
+</body>
+</html>
