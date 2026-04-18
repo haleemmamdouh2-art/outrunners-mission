@@ -1,0 +1,262 @@
+/* Outrunners Community UK - Vibe Coding CSS */
+:root {
+    --neon-green: #39FF14;
+    --dark-void: #0a0a0b;
+    --dark-card: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-main: #ffffff;
+    --text-muted: #b0b0b0;
+    --orange-accent: #FF8C00;
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--dark-void);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+/* Background Elements */
+.bg-glow {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(57, 255, 20, 0.05) 0%, transparent 70%);
+    top: -200px;
+    right: -200px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.bg-glow-bottom {
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255, 140, 0, 0.03) 0%, transparent 70%);
+    bottom: -150px;
+    left: -150px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Typography */
+h1, h2, h3 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.neon-text {
+    color: var(--neon-green);
+    text-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
+}
+
+/* Layout */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.logo {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo span {
+    color: var(--orange-accent);
+}
+
+/* Cards */
+.glass-card {
+    background: var(--dark-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 2rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-card:hover {
+    border-color: rgba(57, 255, 20, 0.3);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+}
+
+.col-12 { grid-column: span 12; }
+.col-8 { grid-column: span 8; }
+.col-4 { grid-column: span 4; }
+
+/* Interactive Map */
+#map {
+    height: 450px;
+    width: 100%;
+    border-radius: 16px;
+    background: #111;
+    z-index: 1;
+}
+
+.map-controls {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+}
+
+/* Input Styles */
+input, select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 0.8rem 1.2rem;
+    color: white;
+    font-family: var(--font-body);
+    width: 100%;
+    margin-top: 0.5rem;
+    transition: var(--transition);
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--neon-green);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Leaderboard */
+.leaderboard-list {
+    list-style: none;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.leaderboard-item:last-child {
+    border-bottom: none;
+}
+
+.runner-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.runner-rank {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    color: var(--text-muted);
+    width: 30px;
+}
+
+.runner-name {
+    font-weight: 600;
+}
+
+.runner-stat {
+    font-family: var(--font-heading);
+    color: var(--neon-green);
+    font-weight: 700;
+}
+
+/* Custom Buttons */
+.btn {
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    border: none;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: var(--neon-green);
+    color: var(--dark-void);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
+    transform: scale(1.05);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+}
+
+.btn-outline:hover {
+    background: rgba(57, 255, 20, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .col-8, .col-4 { grid-column: span 12; }
+    header { flex-direction: column; gap: 1.5rem; text-align: center; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-up {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* Success Zone Pulse */
+.success-zone {
+    animation: pulse-neon 2s infinite;
+}
+
+@keyframes pulse-neon {
+    0% { box-shadow: 0 0 5px rgba(57, 255, 20, 0.2); }
+    50% { box-shadow: 0 0 20px rgba(57, 255, 20, 0.6); }
+    100% { box-shadow: 0 0 5px rgba(57, 255, 20, 0.2); }
+}
